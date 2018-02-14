@@ -263,7 +263,7 @@ function Generate-backupReport {
     "RecoveryServicesVault",
     "ProtectedVM",
     "ProtectionState",
-    "LastBackupTime",
+    "LastBackupTime(UTC)",
     "LastBackupStatus",
     "ProtectionPolicyName"
   )

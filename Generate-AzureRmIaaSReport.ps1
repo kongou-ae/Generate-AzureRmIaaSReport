@@ -90,7 +90,7 @@ function Generate-VirtualMachineReport {
   $i = 2
   $vmList | ForEach-Object {
     $sheet.Cells.Item($i, 1) = $i - 1 
-    $sheet.Cells.Item($i, 2) = $_.PowerState
+    $sheet.Cells.Item($i, 2) = $_.PowerState -replace "VM ", ""
     $sheet.Cells.Item($i, 3) = $_.ResourceGroupName
     $sheet.Cells.Item($i, 4) = $_.Name
     $sheet.Cells.Item($i, 5) = [string]$_.StorageProfile.OsDisk.OsType
@@ -110,7 +110,8 @@ function Generate-VirtualMachineReport {
 
     $i = $i + 1
   }
-  $sheet.Columns.AutoFit()
+
+  $sheet.Columns.AutoFit() | Out-Null
   $sheet.UsedRange.Font.Name = "Meiryo UI"
 }
 
@@ -162,7 +163,7 @@ function Generate-storageAccountReport {
 
     $i = $i + 1
   }
-  $sheet.Columns.AutoFit()
+  $sheet.Columns.AutoFit() | Out-Null
   $sheet.UsedRange.Font.Name = "Meiryo UI"
 }
 
@@ -246,7 +247,7 @@ function Generate-diskReport {
       }
     }
   }
-  $sheet.Columns.AutoFit()
+  $sheet.Columns.AutoFit() | Out-Null
   $sheet.UsedRange.Font.Name = "Meiryo UI"  
 }
 
@@ -280,11 +281,11 @@ function Generate-backupReport {
   $i = 2
   $backupItemList | ForEach-Object {
     $sheet.Cells.Item($i, 1) = $i - 1 
-    $_.Id -match "/resourceGroups/(.*)/providers/Microsoft.RecoveryServices"
+    $_.Id -match "/resourceGroups/(.*)/providers/Microsoft.RecoveryServices" | Out-Null
     $sheet.Cells.Item($i, 2) = $Matches[1]
-    $_.Id -match "/Microsoft.RecoveryServices/vaults/(.*)/backupFabrics/"
+    $_.Id -match "/Microsoft.RecoveryServices/vaults/(.*)/backupFabrics/" | Out-Null
     $sheet.Cells.Item($i, 3) = $Matches[1]
-    $_.SourceResourceId -match "Microsoft.Compute/virtualMachines/(.*)$"    
+    $_.SourceResourceId -match "Microsoft.Compute/virtualMachines/(.*)$" | Out-Null
     $sheet.Cells.Item($i, 4) = $Matches[1]
     $sheet.Cells.Item($i, 5) = [string]$_.ProtectionState
     $sheet.Cells.Item($i, 6) = $_.LastBackupTime
@@ -297,7 +298,7 @@ function Generate-backupReport {
 
     $i = $i + 1
   }
-  $sheet.Columns.AutoFit()
+  $sheet.Columns.AutoFit() | Out-Null
   $sheet.UsedRange.Font.Name = "Meiryo UI"
 }
 
@@ -309,6 +310,7 @@ if ($noLogin -ne $True) {
   Select-AzureRmSubscription -SubscriptionObject $subscription  
 }
 
+Write-Log "Waiting: Collect the info of IaaS resources"
 $vmList = Get-AzureRmVm -Status
 $nicList = Get-AzureRmNetworkInterface
 $PIPList = Get-AzureRmPublicIpAddress
@@ -327,9 +329,10 @@ $vaultList | ForEach-Object {
     }
   }
 }
+Write-Log "Success: Collect the info of IaaS resources" -Color Green
 
 $excel = New-Object -ComObject Excel.Application
-$excel.Visible = $true
+#$excel.Visible = $true
 
 Write-Log "Waiting: Generate-VirtualMachineReport"
 $book = $excel.Workbooks.Add() | Out-Null
